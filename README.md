@@ -179,7 +179,3 @@ If you have any issue or you have any suggestion, please feel free to reach me v
 ## Support
 
 If you are enjoying the plugin then you can support my work and enthusiasm by at <a href="https://boosty.to/elenalomova">Boosty</a>
-
----
-
-**Enjoy organizing your knowledge with Maps of Content!** 🗺️📚
