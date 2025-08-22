@@ -173,10 +173,13 @@ Contributions are welcome! Please feel free to submit pull requests, report bugs
 4. Submit a pull request
 
 ## Contact
+
 If you have any issue or you have any suggestion, please feel free to reach me via i@elenalomova.online or telegram: <a href="@t.me/ElenaLomova1987">@ElenaLomova1987</a>
 
 ## Support
+
 If you are enjoying the plugin then you can support my work and enthusiasm by at <a href="https://boosty.to/elenalomova">Boosty</a>
+
 ---
 
 **Enjoy organizing your knowledge with Maps of Content!** 🗺️📚
