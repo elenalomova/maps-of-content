@@ -49,7 +49,7 @@ The plugin continuously monitors your vault and updates the map automatically wh
 1. Clone the repository into your vault's plugins folder:
    ```bash
    cd /path/to/your/vault/.obsidian/plugins
-   git clone https://github.com/yourusername/maps-of-content.git
+   git clone https://github.com/elenalomova/maps-of-content.git
    ```
 2. Navigate to the plugin directory and install dependencies:
    ```bash
