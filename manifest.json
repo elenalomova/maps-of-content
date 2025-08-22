@@ -1,0 +1,11 @@
+{
+    "id": "maps-of-content",
+    "name": "Maps of Content",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "Автоматически генерирует и обновляет карту заметок, сгруппированных по тегам",
+    "author": "Elena Lomova",
+    "authorUrl": "",
+    "fundingUrl": "",
+    "isDesktopOnly": false
+}
