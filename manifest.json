@@ -1,9 +1,9 @@
 {
-    "id": "maps-of-content",
-    "name": "Maps of Content",
+    "id": "vault-map-generator",
+    "name": "Vault Map Generator",
     "version": "1.0.0",
     "minAppVersion": "0.15.0",
-    "description": "Автоматически генерирует и обновляет карту заметок, сгруппированных по тегам",
+    "description": "Автоматически генерирует и обновляет карту всего vault в виде структурированного списка",
     "author": "Elena Lomova",
     "authorUrl": "",
     "fundingUrl": "",
