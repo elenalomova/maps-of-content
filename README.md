@@ -6,8 +6,6 @@ The **Maps of Content** plugin automatically generates and maintains a comprehen
 
 The plugin continuously monitors your vault and updates the map automatically when you add, modify, or delete notes, ensuring your content map is always up-to-date.
 
-![Maps of Content Demo](images/demo.png)
-
 ## Key Features
 
 ### 📋 **Automatic Tag-Based Organization**
@@ -42,7 +40,7 @@ The plugin continuously monitors your vault and updates the map automatically wh
 ## Installation
 
 ### Manual Installation
-1. Download the latest release from the [Releases](https://github.com/yourusername/maps-of-content/releases) page
+1. Download the latest release from the [Releases](https://github.com/elenalomova/maps-of-content/releases) page
 2. Extract the files to your vault's `.obsidian/plugins/maps-of-content/` directory
 3. Restart Obsidian
 4. Enable the plugin in Settings → Community Plugins
@@ -161,9 +159,9 @@ The plugin continuously monitors your vault and updates the map automatically wh
 
 If you encounter any issues or have suggestions for improvements:
 
-- **Bug Reports**: [GitHub Issues](https://github.com/yourusername/maps-of-content/issues)
-- **Feature Requests**: [GitHub Discussions](https://github.com/yourusername/maps-of-content/discussions)
-- **Documentation**: [Wiki](https://github.com/yourusername/maps-of-content/wiki)
+- **Bug Reports**: [GitHub Issues](https://github.com/elenalomova/maps-of-content/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/elenalomova/maps-of-content/discussions)
+- **Documentation**: [Wiki](https://github.com/elenalomova/maps-of-content/wiki)
 
 ## Contributing
 
@@ -174,14 +172,11 @@ Contributions are welcome! Please feel free to submit pull requests, report bugs
 3. Make your changes
 4. Submit a pull request
 
-## License
+## Contact
+If you have any issue or you have any suggestion, please feel free to reach me via i@elenalomova.online or telegram: <a href="@t.me/ElenaLomova1987">@ElenaLomova1987</a>
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes and updates.
-
+## Support
+If you are enjoying the plugin then you can support my work and enthusiasm by at <a href="https://boosty.to/elenalomova">Boosty</a>
 ---
 
 **Enjoy organizing your knowledge with Maps of Content!** 🗺️📚
