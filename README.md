@@ -155,24 +155,6 @@ The plugin continuously monitors your vault and updates the map automatically wh
 - **Themes**: Compatible with all themes
 - **Other Plugins**: Designed to work alongside other community plugins
 
-## Support & Feedback
-
-If you encounter any issues or have suggestions for improvements:
-
-- **Bug Reports**: [GitHub Issues](https://github.com/elenalomova/maps-of-content/issues)
-- **Feature Requests**: [GitHub Discussions](https://github.com/elenalomova/maps-of-content/discussions)
-- **Documentation**: [Wiki](https://github.com/elenalomova/maps-of-content/wiki)
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests, report bugs, or suggest new features.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
 ## Contact
 
 If you have any issue or you have any suggestion, please feel free to reach me via i@elenalomova.online or telegram: <a href="@t.me/ElenaLomova1987">@ElenaLomova1987</a>
