@@ -179,4 +179,4 @@ If you have any issue or you have any suggestion, please feel free to reach me v
 
 ## Support
 
-If you are enjoying the plugin then you can support my work and enthusiasm by at <a href="https://patreon.com/elenalomova">Pateron</a> or <a href="https://boosty.to/elenalomova">Boosty</a>
+If you are enjoying the plugin then you can support my work and enthusiasm at <a href="https://patreon.com/elenalomova">Pateron</a> or <a href="https://boosty.to/elenalomova">Boosty</a>
