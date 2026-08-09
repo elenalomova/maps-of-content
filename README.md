@@ -60,6 +60,8 @@ Each tag group is shown as a collapsible toggle (collapsed by default), listing 
 3. Restart Obsidian
 4. Enable the plugin in Settings → Community Plugins
 
+> **On the rename:** the plugin id changed from `maps-of-content` to `content-by-tags`. If you're upgrading an existing install, Obsidian will treat this as a new plugin — you'll need to enable it again, and the old `maps-of-content` folder under `.obsidian/plugins/` can be removed.
+
 ## Usage
 
 ### Getting Started
