@@ -55,8 +55,8 @@
 
 ## РучнаяУстановка
 
-1. Скачайте последний релиз со страницы [Releases](https://github.com/elenalomova/maps-of-content/releases)
-2. Распакуйте файлы в папку хранилища `.obsidian/plugins/content-by-tags/`
+1. Скачайте main.js и manifest.json
+2. Поместите файлы в папку `.obsidian/plugins/content-by-tags/`
 3. Перезапустите Obsidian
 4. Включите плагин в Настройки → Community Plugins
 
