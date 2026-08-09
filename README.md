@@ -53,32 +53,12 @@ Each tag group is shown as a collapsible toggle (collapsed by default), listing 
 - **Self-exclusion**: the map file never includes itself
 - **No decorative icons**: the generated page uses plain text and links only — no emoji icons
 
-## Installation
+## Manual Installation
 
-### Manual Installation
 1. Download the latest release from the [Releases](https://github.com/elenalomova/maps-of-content/releases) page
 2. Extract the files into your vault's `.obsidian/plugins/content-by-tags/` folder
 3. Restart Obsidian
 4. Enable the plugin in Settings → Community Plugins
-
-### Development Setup
-1. Clone the repository into your vault's plugins folder:
-   ```bash
-   cd /path/to/your/vault/.obsidian/plugins
-   git clone https://github.com/elenalomova/maps-of-content.git content-by-tags
-   ```
-2. Go into the plugin folder and install dependencies:
-   ```bash
-   cd content-by-tags
-   npm install
-   ```
-3. Build the plugin:
-   ```bash
-   npm run build
-   ```
-4. Restart Obsidian and enable the plugin
-
-> **On the rename:** the plugin id changed from `maps-of-content` to `content-by-tags`. If you're upgrading an existing install, Obsidian will treat this as a new plugin — you'll need to enable it again, and the old `maps-of-content` folder under `.obsidian/plugins/` can be removed.
 
 ## Usage
 
