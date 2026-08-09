@@ -55,7 +55,7 @@ Each tag group is shown as a collapsible toggle (collapsed by default), listing 
 
 ## Manual Installation
 
-1. Download the latest release from the [Releases](https://github.com/elenalomova/maps-of-content/releases) page
+1. Download main.js and manifest.json
 2. Extract the files into your vault's `.obsidian/plugins/content-by-tags/` folder
 3. Restart Obsidian
 4. Enable the plugin in Settings → Community Plugins
