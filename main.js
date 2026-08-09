@@ -2,23 +2,25 @@
 const { Plugin, PluginSettingTab, Setting, Notice } = require('obsidian');
 
 const DEFAULT_SETTINGS = {
-    mapFileName: 'Vault Map',
+    mapFileName: 'Maps of Content',
     autoUpdate: true,
     updateInterval: 5,
-    includeImages: false,
-    includePdfs: false,
     excludeFolders: ['.obsidian', '.trash'],
     sortBy: 'name',
-    groupByFolder: true,
     showFileCount: true,
-    showLastModified: false
+    showLastModified: false,
+    includeNestedTags: true,
+    showTagHierarchy: false,
+    excludeTags: []
 };
 
-class VaultMapPlugin extends Plugin {
+class MapsOfContentPlugin extends Plugin {
     constructor() {
         super(...arguments);
         this.settings = DEFAULT_SETTINGS;
         this.updateTimer = null;
+        this.scheduleTimer = null;
+        this.isUpdating = false; // Флаг для предотвращения дублей
     }
 
     async onload() {
@@ -26,34 +28,42 @@ class VaultMapPlugin extends Plugin {
 
         // Добавляем команду для ручного обновления карты
         this.addCommand({
-            id: 'update-vault-map',
-            name: 'Обновить карту vault',
+            id: 'update-maps-content',
+            name: 'Обновить карту тегов',
             callback: () => {
-                this.updateVaultMap();
+                this.updateMapsContent();
             }
         });
 
         // Добавляем команду для создания/пересоздания карты
         this.addCommand({
-            id: 'create-vault-map',
-            name: 'Создать карту vault',
+            id: 'create-maps-content',
+            name: 'Создать карту тегов',
             callback: () => {
-                this.createVaultMap();
+                this.createMapsContent();
             }
         });
 
         // Добавляем настройки
-        this.addSettingTab(new VaultMapSettingTab(this.app, this));
+        this.addSettingTab(new MapsOfContentSettingTab(this.app, this));
 
         // Запускаем автообновление если включено
         if (this.settings.autoUpdate) {
             this.startAutoUpdate();
         }
 
-        // Слушаем изменения файлов
+        // Слушаем изменения файлов (исключаем саму карту из слежения)
         this.registerEvent(
-            this.app.vault.on('create', () => {
-                if (this.settings.autoUpdate) {
+            this.app.vault.on('modify', (file) => {
+                if (this.settings.autoUpdate && file.name !== this.settings.mapFileName + '.md') {
+                    this.scheduleUpdate();
+                }
+            })
+        );
+
+        this.registerEvent(
+            this.app.vault.on('create', (file) => {
+                if (this.settings.autoUpdate && file.name !== this.settings.mapFileName + '.md') {
                     this.scheduleUpdate();
                 }
             })
@@ -68,9 +78,13 @@ class VaultMapPlugin extends Plugin {
         );
 
         this.registerEvent(
-            this.app.vault.on('rename', () => {
+            this.app.vault.on('rename', (file, oldPath) => {
                 if (this.settings.autoUpdate) {
-                    this.scheduleUpdate();
+                    // Проверяем, что переименованный файл не является картой
+                    const oldName = oldPath.split('/').pop();
+                    if (file.name !== this.settings.mapFileName + '.md' && oldName !== this.settings.mapFileName + '.md') {
+                        this.scheduleUpdate();
+                    }
                 }
             })
         );
@@ -79,6 +93,9 @@ class VaultMapPlugin extends Plugin {
     onunload() {
         if (this.updateTimer) {
             clearInterval(this.updateTimer);
+        }
+        if (this.scheduleTimer) {
+            clearTimeout(this.scheduleTimer);
         }
     }
 
@@ -105,45 +122,72 @@ class VaultMapPlugin extends Plugin {
         }
         
         this.updateTimer = setInterval(() => {
-            this.updateVaultMap();
+            this.updateMapsContent();
         }, this.settings.updateInterval * 60 * 1000);
     }
 
     scheduleUpdate() {
-        // Задержка для избежания частых обновлений
-        setTimeout(() => {
-            this.updateVaultMap();
-        }, 2000);
-    }
-
-    async createVaultMap() {
-        const mapContent = await this.generateMapContent();
-        const mapFile = this.app.vault.getAbstractFileByPath(this.settings.mapFileName + '.md');
-        
-        if (mapFile && mapFile.extension === 'md') {
-            await this.app.vault.modify(mapFile, mapContent);
-        } else {
-            await this.app.vault.create(this.settings.mapFileName + '.md', mapContent);
+        // Очищаем предыдущий таймер если есть
+        if (this.scheduleTimer) {
+            clearTimeout(this.scheduleTimer);
         }
         
-        new Notice(`Карта vault "${this.settings.mapFileName}" создана!`);
+        // Задержка для избежания частых обновлений
+        this.scheduleTimer = setTimeout(() => {
+            this.updateMapsContent();
+            this.scheduleTimer = null;
+        }, 3000); // Увеличиваем задержку до 3 секунд
     }
 
-    async updateVaultMap() {
-        const mapFile = this.app.vault.getAbstractFileByPath(this.settings.mapFileName + '.md');
+    async createMapsContent() {
+        // Предотвращаем одновременные создания
+        if (this.isUpdating) {
+            return;
+        }
         
-        if (mapFile && mapFile.extension === 'md') {
+        this.isUpdating = true;
+        
+        try {
             const mapContent = await this.generateMapContent();
-            await this.app.vault.modify(mapFile, mapContent);
-        } else {
-            // Если файл не существует, создаем его
-            await this.createVaultMap();
+            const mapFile = this.app.vault.getAbstractFileByPath(this.settings.mapFileName + '.md');
+            
+            if (mapFile && mapFile.extension === 'md') {
+                await this.app.vault.modify(mapFile, mapContent);
+            } else {
+                await this.app.vault.create(this.settings.mapFileName + '.md', mapContent);
+            }
+            
+            new Notice(`Карта тегов "${this.settings.mapFileName}" создана!`);
+        } finally {
+            this.isUpdating = false;
+        }
+    }
+
+    async updateMapsContent() {
+        // Предотвращаем одновременные обновления
+        if (this.isUpdating) {
+            return;
+        }
+        
+        this.isUpdating = true;
+        
+        try {
+            const mapFile = this.app.vault.getAbstractFileByPath(this.settings.mapFileName + '.md');
+            
+            if (mapFile && mapFile.extension === 'md') {
+                const mapContent = await this.generateMapContent();
+                await this.app.vault.modify(mapFile, mapContent);
+            } else {
+                // Если файл не существует, создаем его
+                await this.createMapsContent();
+            }
+        } finally {
+            this.isUpdating = false;
         }
     }
 
     async generateMapContent() {
-        const files = this.app.vault.getFiles();
-        const folders = this.app.vault.getAllLoadedFiles().filter(f => f.children !== undefined);
+        const files = this.app.vault.getMarkdownFiles();
         
         // Фильтруем файлы
         const filteredFiles = files.filter(file => {
@@ -155,98 +199,127 @@ class VaultMapPlugin extends Plugin {
                 if (file.path.startsWith(excludeFolder + '/')) return false;
             }
             
-            // Проверяем типы файлов
-            const extension = file.extension.toLowerCase();
-            if (!this.settings.includeImages && ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(extension)) {
-                return false;
-            }
-            if (!this.settings.includePdfs && extension === 'pdf') {
-                return false;
-            }
-            
             return true;
         });
 
-        // Сортируем файлы
-        filteredFiles.sort((a, b) => {
-            switch (this.settings.sortBy) {
-                case 'modified':
-                    return b.stat.mtime - a.stat.mtime;
-                case 'created':
-                    return b.stat.ctime - a.stat.ctime;
-                case 'name':
-                default:
-                    return a.basename.localeCompare(b.basename);
-            }
-        });
+        // Собираем теги из всех файлов
+        const tagMap = new Map();
+        const filesWithoutTags = [];
 
+        for (const file of filteredFiles) {
+            const fileCache = this.app.metadataCache.getFileCache(file);
+            const tags = this.extractTags(fileCache);
+            
+            if (tags.length === 0) {
+                filesWithoutTags.push(file);
+            } else {
+                for (const tag of tags) {
+                    // Проверяем, не исключен ли тег
+                    if (this.settings.excludeTags.includes(tag)) continue;
+                    
+                    if (!tagMap.has(tag)) {
+                        tagMap.set(tag, []);
+                    }
+                    tagMap.get(tag).push(file);
+                }
+            }
+        }
+
+        // Сортируем файлы в каждой категории
+        filesWithoutTags.sort((a, b) => this.sortFiles(a, b));
+        for (const [tag, files] of tagMap) {
+            files.sort((a, b) => this.sortFiles(a, b));
+        }
+
+        // Генерируем содержимое
         let content = `# ${this.settings.mapFileName}\n\n`;
         content += `*Автоматически сгенерировано: ${new Date().toLocaleString('ru-RU')}*\n\n`;
         
+        const totalFiles = filteredFiles.length;
+        const totalTags = tagMap.size;
+        
+        content += `**Всего заметок:** ${totalFiles} | **Всего тегов:** ${totalTags}\n\n`;
+
+        // Сначала заметки без тегов
+        if (filesWithoutTags.length > 0) {
+            content += this.generateTagSection('❓ Без тегов', filesWithoutTags);
+        }
+
+        // Сортируем теги
+        const sortedTags = Array.from(tagMap.keys()).sort();
+        
+        // Генерируем секции для каждого тега
+        for (const tag of sortedTags) {
+            const tagFiles = tagMap.get(tag);
+            content += this.generateTagSection(`🏷️ ${tag}`, tagFiles);
+        }
+
+        return content;
+    }
+
+    extractTags(fileCache) {
+        const tags = [];
+        
+        if (!fileCache) return tags;
+
+        // Теги из фронтматтера
+        if (fileCache.frontmatter && fileCache.frontmatter.tags) {
+            const frontmatterTags = fileCache.frontmatter.tags;
+            if (Array.isArray(frontmatterTags)) {
+                tags.push(...frontmatterTags);
+            } else if (typeof frontmatterTags === 'string') {
+                tags.push(frontmatterTags);
+            }
+        }
+
+        // Теги из содержимого (#тег)
+        if (fileCache.tags) {
+            for (const tagCache of fileCache.tags) {
+                let tag = tagCache.tag;
+                if (tag.startsWith('#')) {
+                    tag = tag.substring(1);
+                }
+                
+                if (this.settings.includeNestedTags || !tag.includes('/')) {
+                    // Если включены вложенные теги, добавляем как есть
+                    // Если нет - только теги без слешей
+                    tags.push(tag);
+                }
+                
+                // Если включена иерархия тегов, добавляем родительские теги
+                if (this.settings.showTagHierarchy && tag.includes('/')) {
+                    const parts = tag.split('/');
+                    for (let i = 1; i < parts.length; i++) {
+                        const parentTag = parts.slice(0, i).join('/');
+                        if (!tags.includes(parentTag)) {
+                            tags.push(parentTag);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Убираем дубликаты и сортируем
+        return [...new Set(tags)].filter(tag => tag.trim() !== '');
+    }
+
+    generateTagSection(tagName, files) {
+        let content = `## ${tagName}\n\n`;
+        
         if (this.settings.showFileCount) {
-            content += `**Всего файлов:** ${filteredFiles.length}\n\n`;
+            content += `*Заметок: ${files.length}*\n\n`;
         }
-
-        if (this.settings.groupByFolder) {
-            content += this.generateFolderStructure(filteredFiles, folders);
-        } else {
-            content += this.generateFlatList(filteredFiles);
-        }
-
-        return content;
-    }
-
-    generateFolderStructure(files, folders) {
-        let content = '';
         
-        // Создаем структуру папок
-        const folderStructure = {};
-        
-        // Группируем файлы по папкам
-        files.forEach(file => {
-            const folderPath = file.parent?.path || 'Root';
-            if (!folderStructure[folderPath]) {
-                folderStructure[folderPath] = [];
-            }
-            folderStructure[folderPath].push(file);
-        });
-
-        // Сортируем папки
-        const sortedFolders = Object.keys(folderStructure).sort();
-
-        sortedFolders.forEach(folderPath => {
-            const folderFiles = folderStructure[folderPath];
-            const folderName = folderPath === 'Root' ? '📁 Корневая папка' : `📁 ${folderPath}`;
-            
-            content += `## ${folderName}\n\n`;
-            
-            if (this.settings.showFileCount) {
-                content += `*Файлов: ${folderFiles.length}*\n\n`;
-            }
-            
-            folderFiles.forEach(file => {
-                content += this.formatFileEntry(file);
-            });
-            
-            content += '\n';
-        });
-
-        return content;
-    }
-
-    generateFlatList(files) {
-        let content = '## Все файлы\n\n';
-        
-        files.forEach(file => {
+        for (const file of files) {
             content += this.formatFileEntry(file);
-        });
-
+        }
+        
+        content += '\n';
         return content;
     }
 
     formatFileEntry(file) {
-        const icon = this.getFileIcon(file.extension);
-        let entry = `- ${icon} [[${file.basename}]]`;
+        let entry = `- 📝 [[${file.basename}]]`;
         
         if (file.path !== file.name) {
             entry += ` *(${file.path})*`;
@@ -261,35 +334,20 @@ class VaultMapPlugin extends Plugin {
         return entry;
     }
 
-    getFileIcon(extension) {
-        const icons = {
-            'md': '📝',
-            'png': '🖼️',
-            'jpg': '🖼️',
-            'jpeg': '🖼️',
-            'gif': '🖼️',
-            'svg': '🖼️',
-            'webp': '🖼️',
-            'pdf': '📄',
-            'txt': '📄',
-            'docx': '📄',
-            'xlsx': '📊',
-            'pptx': '📊',
-            'mp3': '🎵',
-            'mp4': '🎬',
-            'zip': '🗜️',
-            'json': '⚙️',
-            'js': '⚙️',
-            'ts': '⚙️',
-            'css': '🎨',
-            'html': '🌐'
-        };
-        
-        return icons[extension.toLowerCase()] || '📄';
+    sortFiles(a, b) {
+        switch (this.settings.sortBy) {
+            case 'modified':
+                return b.stat.mtime - a.stat.mtime;
+            case 'created':
+                return b.stat.ctime - a.stat.ctime;
+            case 'name':
+            default:
+                return a.basename.localeCompare(b.basename);
+        }
     }
 }
 
-class VaultMapSettingTab extends PluginSettingTab {
+class MapsOfContentSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
         this.plugin = plugin;
@@ -299,13 +357,13 @@ class VaultMapSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Настройки карты Vault' });
+        containerEl.createEl('h2', { text: 'Настройки Maps of Content' });
 
         new Setting(containerEl)
             .setName('Имя файла карты')
-            .setDesc('Имя файла, в котором будет создана карта (без расширения .md)')
+            .setDesc('Имя файла, в котором будет создана карта тегов (без расширения .md)')
             .addText(text => text
-                .setPlaceholder('Vault Map')
+                .setPlaceholder('Maps of Content')
                 .setValue(this.plugin.settings.mapFileName)
                 .onChange(async (value) => {
                     this.plugin.settings.mapFileName = value;
@@ -335,18 +393,8 @@ class VaultMapSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Группировать по папкам')
-            .setDesc('Группировать файлы по папкам вместо плоского списка')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.groupByFolder)
-                .onChange(async (value) => {
-                    this.plugin.settings.groupByFolder = value;
-                    await this.plugin.saveSettings();
-                }));
-
-        new Setting(containerEl)
-            .setName('Показывать количество файлов')
-            .setDesc('Показывать количество файлов в каждой папке')
+            .setName('Показывать количество заметок')
+            .setDesc('Показывать количество заметок в каждом теге')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.showFileCount)
                 .onChange(async (value) => {
@@ -356,7 +404,7 @@ class VaultMapSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Показывать дату изменения')
-            .setDesc('Показывать дату последнего изменения файлов')
+            .setDesc('Показывать дату последнего изменения заметок')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.showLastModified)
                 .onChange(async (value) => {
@@ -365,28 +413,28 @@ class VaultMapSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Включать изображения')
-            .setDesc('Включать изображения в карту vault')
+            .setName('Включать вложенные теги')
+            .setDesc('Включать теги с символом / (например, проект/работа)')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.includeImages)
+                .setValue(this.plugin.settings.includeNestedTags)
                 .onChange(async (value) => {
-                    this.plugin.settings.includeImages = value;
+                    this.plugin.settings.includeNestedTags = value;
                     await this.plugin.saveSettings();
                 }));
 
         new Setting(containerEl)
-            .setName('Включать PDF файлы')
-            .setDesc('Включать PDF файлы в карту vault')
+            .setName('Показывать иерархию тегов')
+            .setDesc('Добавлять родительские теги для вложенных тегов (проект/работа создаст также тег проект)')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.includePdfs)
+                .setValue(this.plugin.settings.showTagHierarchy)
                 .onChange(async (value) => {
-                    this.plugin.settings.includePdfs = value;
+                    this.plugin.settings.showTagHierarchy = value;
                     await this.plugin.saveSettings();
                 }));
 
         new Setting(containerEl)
             .setName('Сортировка')
-            .setDesc('Способ сортировки файлов')
+            .setDesc('Способ сортировки заметок')
             .addDropdown(dropdown => dropdown
                 .addOption('name', 'По имени')
                 .addOption('modified', 'По дате изменения')
@@ -410,7 +458,21 @@ class VaultMapSettingTab extends PluginSettingTab {
                         .filter(folder => folder.length > 0);
                     await this.plugin.saveSettings();
                 }));
+
+        new Setting(containerEl)
+            .setName('Исключенные теги')
+            .setDesc('Теги для исключения из карты (через запятую, без символа #)')
+            .addTextArea(text => text
+                .setPlaceholder('черновик, архив, приватное')
+                .setValue(this.plugin.settings.excludeTags.join(', '))
+                .onChange(async (value) => {
+                    this.plugin.settings.excludeTags = value
+                        .split(',')
+                        .map(tag => tag.trim().replace(/^#/, ''))
+                        .filter(tag => tag.length > 0);
+                    await this.plugin.saveSettings();
+                }));
     }
 }
 
-module.exports = VaultMapPlugin;
+module.exports = MapsOfContentPlugin;
