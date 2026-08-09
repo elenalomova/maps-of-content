@@ -1,0 +1,11 @@
+{
+    "id": "content-by-tags",
+    "name": "Content by Tags",
+    "version": "2.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "Generates and updates a map of your notes as collapsible toggles, grouped by tags",
+    "author": "Elena Lomova",
+    "authorUrl": "",
+    "fundingUrl": "",
+    "isDesktopOnly": false
+}
